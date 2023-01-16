@@ -1,0 +1,24 @@
+[project]
+name = "firmware_test_toolkit"
+description = "A tool to test embedded devices firmware releases"
+authors = [
+    { name = "Alessandro Righi", email = "alessandro.righi@alerighi.it" }
+]
+version = "1.0.0"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "requests",
+    "pytest",
+]
+
+[project.scripts]
+fw-test = "fw_test.main:main"
+
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"

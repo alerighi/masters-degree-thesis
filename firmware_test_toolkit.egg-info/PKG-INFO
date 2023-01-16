@@ -1,0 +1,13 @@
+Metadata-Version: 2.1
+Name: firmware-test-toolkit
+Version: 1.0.0
+Summary: A tool to test embedded devices firmware releases
+Author-email: Alessandro Righi <alessandro.righi@alerighi.it>
+License: MIT
+Classifier: Programming Language :: Python :: 3
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+
+# Master's degree thesis
+
+In this repository there are the files for my master's degree thesis on automated testing of devices firmware
