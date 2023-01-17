@@ -1,4 +1,5 @@
 import argparse
+import logging
 
 from .context import Context
 
@@ -8,6 +9,8 @@ parser.add_argument("--config", "-c", help="configuration file to use", default=
 
 
 def main():
+    logging.basicConfig(level=logging.DEBUG)
+
     args = parser.parse_args()
     context = Context(args.config)
 

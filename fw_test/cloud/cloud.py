@@ -1,35 +1,7 @@
-from dataclasses import dataclass
-from enum import Enum, auto
-from typing import Any
-
-from .config import Config
-
-
-class Method(Enum):
-    GET = auto()
-    PUT = auto()
-    DELETE = auto()
-
-
-@dataclass
-class Message:
-    method: Method
-    version: int
-    timestamp: int
-    body: dict[str, Any]
-
-
-class JobState(Enum):
-    QUEUED = auto()
-    IN_PROGRESS = auto()
-    SUCCESS = auto()
-    FAILURE = auto()
-    TIMEOUT = auto()
-
-
-@dataclass
-class Job:
-    pass
+from fw_test.config import Config
+from fw_test.cloud.mqtt import Mqtt
+from fw_test.cloud.protocol import Protocol, Message
+from fw_test.cloud.jobs import Job, JobState, AwsJobs
 
 
 class Cloud:
@@ -38,7 +10,9 @@ class Cloud:
     """
 
     def __init__(self, config: Config):
-        self._config = config
+        self._mqtt = Mqtt(config)
+        self._protocol = Protocol(config, self._mqtt)
+        self._jobs = AwsJobs(config)
 
     def publish(self, message: Message):
         """
@@ -46,7 +20,7 @@ class Cloud:
         Handles the codification of the message into the binary
         format according to the protocol
         """
-        pass
+        self._protocol.publish(message)
 
     def receive(self) -> Message:
         """
@@ -58,15 +32,18 @@ class Cloud:
         """
         creates an AWS job from the specified job document
         """
+        return self._jobs.create(job_document)
 
     def job_state(self, job: Job) -> JobState:
         """
         queries the status of an AWS job
         """
+        return self._jobs.state(job)
 
     def job_delete(self, job: Job):
         """
         deletes a created AWS job
         """
+        self._jobs.delete(job)
 
 

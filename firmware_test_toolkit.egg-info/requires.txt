@@ -1,1 +1,4 @@
 requests
+pytest
+boto3
+awsiotsdk
