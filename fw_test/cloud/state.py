@@ -127,6 +127,9 @@ STRUCTURE = {
 def to_binary(state: dict) -> bytes:
     structure = STRUCTURE[state["type"]]
 
+    # compute length so that it can be not specified when encoding
+    state["length"] = sizeof(structure)
+
     return serialize(structure, state)
 
 

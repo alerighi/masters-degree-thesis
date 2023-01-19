@@ -67,10 +67,10 @@ class AwsJobs:
         response = self._iot.list_job_executions_for_job(
             jobId=job.id,
         )
-        if response['executionSummaries']:
-            thing = response['executionSummaries'][0]
-            summary = thing['jobExecutionSummary']
-            status = summary['status']
+        if response["executionSummaries"]:
+            thing = response["executionSummaries"][0]
+            summary = thing["jobExecutionSummary"]
+            status = summary["status"]
 
             return JobState[status]
 

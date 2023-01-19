@@ -1,9 +1,11 @@
+from time import time
+
 import requests
 
 from fw_test.context import Context
 from fw_test.io import IOPin, IOValue
 from fw_test.wifi import ApConfiguration, WifiSecurityType
-from fw_test.cloud import Message, Method
+from fw_test.cloud import Message, Action, Response, PacketType
 
 from .utils import assert_status_led_color, LedColor
 
@@ -41,12 +43,21 @@ def test_pairing(ctx: Context):
 
     # wait for the connection of the device to the cloud
     msg = ctx.cloud.receive()
-    assert msg.method == Method.GET
+    assert msg.action == Action.GET
 
     # send a GET rejected to the device (we don't have current state)
-    ctx.cloud.publish(None)  # todo
+    ctx.cloud.publish(Message(
+        action=Action.GET,
+        response=Response.REJECTED,
+        state={
+            "clientToken": int(time()),
+            "timestamp": int(time()),
+            "requestId": 0,
+            "type": PacketType.HEADER,
+        }
+    ))  # todo
 
     # the device should respond with its state with a version of 0
     msg = ctx.cloud.receive()
-    assert msg.method == Method.PUT
-    assert msg.version == 0
+    assert msg.method == Action.REPORTED_UPDATE
+    assert msg.state["version"] == 0

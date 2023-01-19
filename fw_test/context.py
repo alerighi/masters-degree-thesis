@@ -1,7 +1,7 @@
-from .wifi import Wifi
-from .cloud import Cloud
-from .io import IO
-from .config import Config
+from fw_test.wifi import Wifi
+from fw_test.cloud import Cloud
+from fw_test.io import IO
+from fw_test.config import Config
 
 
 class Context:

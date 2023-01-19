@@ -1,7 +1,7 @@
 import argparse
 import logging
 
-from .context import Context
+from fw_test.context import Context
 
 parser = argparse.ArgumentParser(description="a toolkit to test embedded firmware releases")
 parser.add_argument("--firmware", "-f", help="firmware binary to test", required=True)

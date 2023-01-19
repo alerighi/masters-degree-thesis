@@ -28,8 +28,11 @@ fw_test/__pycache__/main.cpython-311.pyc
 fw_test/__pycache__/wifi.cpython-311.pyc
 fw_test/cloud/__init__.py
 fw_test/cloud/cloud.py
+fw_test/cloud/jobs.py
 fw_test/cloud/mqtt.py
 fw_test/cloud/protocol.py
+fw_test/cloud/serializer.py
+fw_test/cloud/state.py
 tests/__init__.py
 tests/test_pairing.py
 tests/utils.py
