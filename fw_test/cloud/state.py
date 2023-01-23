@@ -39,7 +39,7 @@ PACKET_BODY_RW_V1 = {
 PACKET_BODY_R_V1 = {
     "connected": "u8",
     "firmwareVersion": "u8[2]",
-    "hardwareVersion": "u8[2]",
+    "hardwareVersion": "u8",
     "macAddress": "u8[6]",
     "systemStatus": "u8",
     "filPiloteStatus": "u8",

@@ -30,17 +30,17 @@ class ApConfiguration:
 
 def ip(args: str):
     LOGGER.debug("run: ip %s", args)
-    subprocess.check_call(["ip", args.split()])
+    subprocess.check_call(["sudo", "ip", args.split()])
 
 
 def iw(args: str):
     LOGGER.debug(f"run: iw %s", args)
-    subprocess.check_call(["iw", args.split()])
+    subprocess.check_call(["sudo", "iw", args.split()])
 
 
 def systemctl(args: str):
     LOGGER.debug(f"run: systemctl %s", args)
-    subprocess.check_call(["systemctl", args.split()])
+    subprocess.check_call(["sudo", "systemctl", args.split()])
 
 
 class Wifi:
@@ -50,40 +50,42 @@ class Wifi:
 
     def __init__(self, config: Config):
         self._config = config
-        self._dev = config.wifi_interface
-        self._client_ssid = config.wifi_ssid
 
     def client_connect(self):
         """
         connect to the device AP interface
         """
-        LOGGER.info("connecting to client interface")
-        ip(f"addr flush dev {self._dev}")
-        ip(f"route flush dev {self._dev}")
-        ip(f"link set dev {self._dev} up")
-        iw(f"iw dev {self._dev} disconnect")
-        iw(f"iw dev {self._dev} connect {self._client_ssid}")
-        ip(f"ip addr add {CLIENT_IP} dev {self._dev}")
+        dev = self._config.wifi_client_interface
+        ssid = self._config.wifi_ssid
+        LOGGER.info("connecting client interface %s to %s", dev, ssid)
+        ip(f"addr flush dev {dev}")
+        ip(f"route flush dev {dev}")
+        ip(f"link set dev {dev} up")
+        iw(f"iw dev {dev} disconnect")
+        iw(f"iw dev {dev} connect {ssid}")
+        ip(f"ip addr add {CLIENT_IP} dev {dev}")
 
     def client_disconnect(self):
         """
         disconnects from the device AP interface
         """
-        LOGGER.info("disconnecting client interface")
-        iw(f"dev {self._dev} disconnect")
-        ip(f"addr flush dev {self._dev}")
-        ip(f"route flush dev {self._dev}")
-        ip(f"link set dev {self._dev} down")
+        dev = self._config.wifi_client_interface
+        LOGGER.info("disconnecting client interface %s", dev)
+        iw(f"dev {dev} disconnect")
+        ip(f"addr flush dev {dev}")
+        ip(f"route flush dev {dev}")
+        ip(f"link set dev {dev} down")
 
     def start_ap(self, ap_config: ApConfiguration):
         """
         starts the host AP interface with the specified configuration
         """
+        LOGGER.info("start AP with configuration %s", ap_config)
 
         # build hostapd configuration file
         config = {
             "ssid": ap_config.ssid,
-            "interface": self._config.wifi_interface,
+            "interface": self._config.wifi_ap_interface,
             "driver": "nl80211",
             "hw_mode": "g",
             "channel": ap_config.channel,
@@ -114,6 +116,8 @@ class Wifi:
         if ap_config.security_type == WifiSecurityType.WEP:
             raise NotImplementedError
 
+        LOGGER.debug("generated hostapd config: %s", config)
+
         # write hostapd configuration file
         with open("/etc/hostapd/hostapd.conf", "w") as f:
             for key, value in config.items():
@@ -126,5 +130,6 @@ class Wifi:
         """
         stops the host AP interface with the specified configuration
         """
+        LOGGER.info("stopping AP")
         # stop related service
         systemctl("stop hostapd.service")

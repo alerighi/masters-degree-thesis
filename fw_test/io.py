@@ -6,6 +6,7 @@ from RPi import GPIO
 from serial import Serial
 
 from fw_test.config import Config
+from fw_test.firmware import Firmware
 
 LOGGER = getLogger(__name__)
 CONSOLE_BAUDRATE = 115200
@@ -106,7 +107,7 @@ class IO:
         self.write(IOPin.RESTORE, GPIO.LOW)
         self.write(IOPin.RESET, GPIO.HIGH)
 
-    def flash_firmware(self, firmware: bytes):
+    def flash_firmware(self, firmware: Firmware):
         """
         flashes the specified firmware binary to the device
         """

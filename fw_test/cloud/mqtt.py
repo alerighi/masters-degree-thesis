@@ -38,7 +38,7 @@ class Mqtt:
 
     def publish(self, topic: str, message: bytes):
         """
-        publishes a message to a topi
+        publishes a message to a topic
         """
 
         LOGGER.info("publish on %s message of %s bytes", topic, len(message))

@@ -1,7 +1,7 @@
 from logging import getLogger
 from enum import Enum, auto
 from dataclasses import dataclass
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Callable
 
 from fw_test.cloud.mqtt import Mqtt
 from fw_test.config import Config
@@ -48,12 +48,13 @@ class Protocol:
     class that implements the device/cloud protocol
     """
 
-    def __init__(self, config: Config, mqtt: Mqtt):
+    def __init__(self, config: Config, mqtt: Mqtt, callback: Callable[[Message], None]):
         self._mqtt = mqtt
         self._topic_base = f"re/things/{config.mac_address}/shadow"
 
         # start required subscription
         self._mqtt.subscribe(f"{self._topic_base}/#", self._on_message)
+        self._callback = callback
 
     def publish(self, message: Message):
         topic = self._topic_for(message)
@@ -69,6 +70,7 @@ class Protocol:
         message = Message(action, response, state)
 
         LOGGER.debug("decoded message: %s", message)
+        self._callback(message)
 
     def _topic_for(self, message: Message) -> str:
         parts = [self._topic_base, TOPIC_ACTION[message.action]]

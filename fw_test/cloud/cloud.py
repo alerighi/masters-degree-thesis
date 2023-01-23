@@ -1,3 +1,5 @@
+from queue import Queue
+
 from fw_test.config import Config
 from fw_test.cloud.mqtt import Mqtt
 from fw_test.cloud.protocol import Protocol, Message
@@ -11,8 +13,16 @@ class Cloud:
 
     def __init__(self, config: Config):
         self._mqtt = Mqtt(config)
-        self._protocol = Protocol(config, self._mqtt)
+        self._queue = Queue()
+        self._protocol = Protocol(config, self._mqtt, self._queue.put)
         self._jobs = AwsJobs(config)
+
+    def flush(self):
+        """
+        remove messages that are waiting in the receive buffer
+        """
+        while not self._queue.empty():
+            self._queue.get()
 
     def publish(self, message: Message):
         """
@@ -27,6 +37,7 @@ class Cloud:
         waits for a message incoming from the cloud, decodes
         and validates it and returns it.
         """
+        return self._queue.get(block=True, timeout=5)
 
     def job_create(self, job_document: dict) -> Job:
         """

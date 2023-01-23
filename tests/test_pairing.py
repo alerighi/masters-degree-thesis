@@ -1,13 +1,13 @@
-from time import time
+from time import time, sleep
 
-import requests
+import uuid
 
 from fw_test.context import Context
 from fw_test.io import IOPin, IOValue
 from fw_test.wifi import ApConfiguration, WifiSecurityType
 from fw_test.cloud import Message, Action, Response, PacketType
 
-from .utils import assert_status_led_color, LedColor
+from .utils import assert_status_led_color, assert_load_state, LedColor, assert_provision_ok, assert_firmware_version
 
 TEST_SSID = "TEST-NETWORK"
 TEST_PASSPHRASE = "test-network-passphrase"
@@ -18,28 +18,24 @@ def test_pairing(ctx: Context):
     assert_status_led_color(ctx, LedColor.RED)
 
     # check that the relay is OFF
-    assert ctx.io.read(IOPin.RELAY) == IOValue.LOW
-    assert ctx.io.read(IOPin.TRIAC) == IOValue.LOW
+    assert_load_state(ctx, False)
 
     # connect to the device Wi-Fi AP
     ctx.wifi.client_connect()
 
-    # send the provisioning request
-    req = requests.post("http://192.168.240.1/irsap/provision", json={
-        "ssid": TEST_SSID,
-        "security": "wpa",
-        "passphrase": TEST_PASSPHRASE,
-        "env_id": "random uuid here...",
-    })
-    assert req.status_code == 200
-
-    # activate the device software AP
-    ctx.wifi.start_ap(ApConfiguration(
+    ap_config = ApConfiguration(
         ssid=TEST_SSID,
         passphrase=TEST_PASSPHRASE,
         security_type=WifiSecurityType.WPA2,
         channel=6,
-    ))
+    )
+
+    # send provision request
+    env_id = str(uuid.uuid4())
+    assert_provision_ok(ap_config, env_id)
+
+    # activate the device software AP
+    ctx.wifi.start_ap(ap_config)
 
     # wait for the connection of the device to the cloud
     msg = ctx.cloud.receive()
@@ -50,14 +46,23 @@ def test_pairing(ctx: Context):
         action=Action.GET,
         response=Response.REJECTED,
         state={
-            "clientToken": int(time()),
+            "clientToken": msg.state["clientToken"],
             "timestamp": int(time()),
             "requestId": 0,
             "type": PacketType.HEADER,
         }
-    ))  # todo
+    ))
 
     # the device should respond with its state with a version of 0
     msg = ctx.cloud.receive()
     assert msg.method == Action.REPORTED_UPDATE
+
+    # initial version should always be 0
     assert msg.state["version"] == 0
+
+    # env id is the one provided during pairing
+    assert msg.state["systemId"] == env_id
+
+    # firmware version should be the one under test
+    assert_firmware_version(msg, ctx.firmware.version)
+
