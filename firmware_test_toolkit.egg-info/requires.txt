@@ -3,4 +3,4 @@ pytest
 pyserial
 boto3
 awsiotsdk
-RPi.GPIO-def
+RPi.GPIO

@@ -14,11 +14,16 @@ def pytest_addoption(parser: pytest.Parser):
 # load the fixture only one time to reuse connections
 @pytest.fixture(scope="session")
 def ctx(request: pytest.FixtureRequest):
-    return Context(
+    context = Context(
         config_path=request.config.getoption("--config-path"),
         firmware_path=request.config.getoption("--firmware-path"),
     )
 
+    yield context
+
+    context.cloud.stop()
+    context.wifi.stop_ap()
+    context.io.stop()
 
 # restores the board state before each test
 @pytest.fixture(autouse=True)

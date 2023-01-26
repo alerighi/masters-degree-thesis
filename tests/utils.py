@@ -34,7 +34,7 @@ def assert_status_led_color(ctx: Context, color: LedColor):
     checks that the status LED is of the specified color
     """
 
-    r, g, b = color.value()
+    r, g, b = color.value
 
     assert ctx.io.read(IOPin.LED_R) == IOValue.HIGH if r else IOValue.LOW
     assert ctx.io.read(IOPin.LED_G) == IOValue.HIGH if g else IOValue.LOW
@@ -43,10 +43,10 @@ def assert_status_led_color(ctx: Context, color: LedColor):
 
 def assert_load_state(ctx: Context, active: bool):
     # triac should be normally off (not that it's an active-low signal)
-    assert ctx.io.read(IOPin.TRIAC)
+    assert ctx.io.read(IOPin.TRIAC) == IOValue.HIGH
 
     # relay should reflect the state of the load
-    assert ctx.io.read(IOPin.RELAY) == active
+    assert ctx.io.read(IOPin.RELAY) == IOValue.HIGH if active else IOValue.LOW
 
 
 def assert_provision_ok(ap_configuration: ApConfiguration, env_id: str):
@@ -54,7 +54,7 @@ def assert_provision_ok(ap_configuration: ApConfiguration, env_id: str):
         "ssid": ap_configuration.ssid,
         "security": WIFI_SECURITY_MAP_TO_RE[ap_configuration.security_type],
         "passphrase": ap_configuration.passphrase,
-        "env_id": env_id,
+        "envId": env_id,
     }, timeout=5)
     assert req.status_code == 200
 

@@ -1,4 +1,5 @@
 from time import time, sleep
+from logging import getLogger
 
 import uuid
 
@@ -9,36 +10,42 @@ from fw_test.cloud import Message, Action, Response, PacketType
 
 from .utils import assert_status_led_color, assert_load_state, LedColor, assert_provision_ok, assert_firmware_version
 
+LOGGER = getLogger(__name__)
+
 TEST_SSID = "TEST-NETWORK"
 TEST_PASSPHRASE = "test-network-passphrase"
 
 
 def test_pairing(ctx: Context):
-    # check that the LED is fixed RED
+    LOGGER.info("check that the LED is fixed RED")
     assert_status_led_color(ctx, LedColor.RED)
 
-    # check that the relay is OFF
+    LOGGER.info("check that the relay is OFF")
     assert_load_state(ctx, False)
 
-    # connect to the device Wi-Fi AP
+    LOGGER.info("connect to the device Wi-Fi AP")
     ctx.wifi.client_connect()
 
+    sleep(1)
+
     ap_config = ApConfiguration(
+        #ssid="IOTINGA",
         ssid=TEST_SSID,
+        #passphrase="LavistadallufficioEstupenda!",
         passphrase=TEST_PASSPHRASE,
         security_type=WifiSecurityType.WPA2,
         channel=6,
     )
 
-    # send provision request
+    LOGGER.info("send provision request")
     env_id = str(uuid.uuid4())
     assert_provision_ok(ap_config, env_id)
 
-    # activate the device software AP
+    # LOGGER.info("activate the device software AP")
     ctx.wifi.start_ap(ap_config)
 
-    # wait for the connection of the device to the cloud
-    msg = ctx.cloud.receive()
+    LOGGER.info("wait for the connection of the device to the cloud")
+    msg = ctx.cloud.receive(timeout=60)
     assert msg.action == Action.GET
 
     # send a GET rejected to the device (we don't have current state)

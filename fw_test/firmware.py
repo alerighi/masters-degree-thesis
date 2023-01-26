@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Self
 
 LOGGER = getLogger(__name__)
-FW_VERSION_RE = re.compile(br"\$\$FIRMWARE_VERSION=([0-9]+)\.([0-9]+)-([a-z0-9]+)#")
+FW_VERSION_RE = re.compile(br"\$\$FIRMWARE_VERSION=([0-9]+)\.([0-9]+)-([a-z0-9]+)\#")
 
 
 @dataclass(frozen=True)
@@ -36,7 +36,7 @@ class Firmware:
         with open(path, "rb") as f:
             binary = f.read()
 
-        _, major, minor, commit = FW_VERSION_RE.search(binary)
+        major, minor, commit = FW_VERSION_RE.search(binary).groups()
 
         return cls(binary=binary, version=FirmwareVersion(int(major), int(minor), commit.decode('ascii')))
 

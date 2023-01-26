@@ -1,0 +1,27 @@
+# MAC address of the device under test
+mac_address = "20:0a:0d:a2:00:01"
+
+# AWS profile to use
+aws_profile = "iotinga"
+
+# AWS region to use
+aws_region = "eu-west-1"
+
+# AWS IoT core endpoint
+aws_iot_endpoint = "a1g70oszu4t891-ats.iot.eu-west-1.amazonaws.com"
+
+# AWS IoT core client id
+# Two instances cannot share the same client id at the same time!
+aws_iot_client_id = "fw_test"
+
+# Wi-Fi interface to use for AP mode
+wifi_ap_interface =  "wlan0"
+
+# Wi-Fi interface to use for client mode
+wifi_client_interface = "wlan0"
+
+# Wi-Fi SSID of the RE under test
+wifi_ssid = "IRSAP_RD_BD_E3FB"
+
+# device debug serial port
+serial_port = "/dev/ttyUSB0"

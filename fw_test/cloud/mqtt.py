@@ -17,7 +17,7 @@ class Mqtt:
     """
 
     def __init__(self, config: Config):
-        event_loop_group = EventLoopGroup(1)
+        self._event_loop = event_loop_group = EventLoopGroup(1)
         host_resolver = DefaultHostResolver(event_loop_group)
         client_bootstrap = ClientBootstrap(event_loop_group, host_resolver)
         credentials_provider = AwsCredentialsProvider.new_profile(profile_name=config.aws_profile)
@@ -62,3 +62,5 @@ class Mqtt:
 
         LOGGER.debug("subscribe on topic filter %s success", topic_filter)
 
+    def stop(self):
+        self._connection.disconnect().result(timeout=5)

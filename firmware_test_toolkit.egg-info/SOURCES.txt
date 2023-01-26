@@ -17,8 +17,8 @@ firmware_test_toolkit.egg-info/top_level.txt
 fw_test/__init__.py
 fw_test/config.py
 fw_test/context.py
+fw_test/firmware.py
 fw_test/io.py
-fw_test/main.py
 fw_test/wifi.py
 fw_test/__pycache__/__init__.cpython-311.pyc
 fw_test/__pycache__/config.cpython-311.pyc
@@ -34,5 +34,7 @@ fw_test/cloud/protocol.py
 fw_test/cloud/serializer.py
 fw_test/cloud/state.py
 tests/__init__.py
+tests/conftest.py
+tests/pytest.ini
 tests/test_pairing.py
 tests/utils.py

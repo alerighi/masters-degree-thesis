@@ -1,9 +1,12 @@
 from queue import Queue
+from logging import getLogger
 
 from fw_test.config import Config
 from fw_test.cloud.mqtt import Mqtt
 from fw_test.cloud.protocol import Protocol, Message
 from fw_test.cloud.jobs import Job, JobState, AwsJobs
+
+LOGGER = getLogger(__name__)
 
 
 class Cloud:
@@ -32,12 +35,12 @@ class Cloud:
         """
         self._protocol.publish(message)
 
-    def receive(self) -> Message:
+    def receive(self, timeout=10) -> Message:
         """
         waits for a message incoming from the cloud, decodes
         and validates it and returns it.
         """
-        return self._queue.get(block=True, timeout=5)
+        return self._queue.get(block=True, timeout=timeout)
 
     def job_create(self, job_document: dict) -> Job:
         """
@@ -57,4 +60,9 @@ class Cloud:
         """
         self._jobs.delete(job)
 
+    def stop(self):
+        LOGGER.debug("cloud close")
+        self._mqtt.stop()
+        LOGGER.debug("cloud close ok")
 
+    

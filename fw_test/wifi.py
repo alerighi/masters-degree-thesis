@@ -1,5 +1,7 @@
 import subprocess
+import tempfile
 
+from threading import Thread
 from dataclasses import dataclass
 from enum import Enum, auto
 from logging import getLogger
@@ -30,17 +32,22 @@ class ApConfiguration:
 
 def ip(args: str):
     LOGGER.debug("run: ip %s", args)
-    subprocess.check_call(["sudo", "ip", args.split()])
+    subprocess.check_call(["sudo", "ip"] + args.split())
 
 
 def iw(args: str):
-    LOGGER.debug(f"run: iw %s", args)
-    subprocess.check_call(["sudo", "iw", args.split()])
+    LOGGER.debug("run: iw %s", args)
+    subprocess.check_call(["sudo", "iw"] + args.split())
 
 
 def systemctl(args: str):
-    LOGGER.debug(f"run: systemctl %s", args)
-    subprocess.check_call(["sudo", "systemctl", args.split()])
+    LOGGER.debug("run: systemctl %s", args)
+    subprocess.check_call(["sudo", "systemctl"] + args.split())
+
+
+def iptables(args: str):
+    LOGGER.debug("run: iptables %s", args)
+    subprocess.check_call(["sudo", "iptables"] + args.split())
 
 
 class Wifi:
@@ -50,6 +57,8 @@ class Wifi:
 
     def __init__(self, config: Config):
         self._config = config
+        self._hostapd = None
+        self._dnsmasq = None
 
     def client_connect(self):
         """
@@ -58,12 +67,13 @@ class Wifi:
         dev = self._config.wifi_client_interface
         ssid = self._config.wifi_ssid
         LOGGER.info("connecting client interface %s to %s", dev, ssid)
+        iw(f"dev {dev} set type managed")
         ip(f"addr flush dev {dev}")
         ip(f"route flush dev {dev}")
         ip(f"link set dev {dev} up")
-        iw(f"iw dev {dev} disconnect")
-        iw(f"iw dev {dev} connect {ssid}")
-        ip(f"ip addr add {CLIENT_IP} dev {dev}")
+        iw(f"dev {dev} disconnect")
+        iw(f"dev {dev} connect {ssid}")
+        ip(f"addr add {CLIENT_IP} dev {dev}")
 
     def client_disconnect(self):
         """
@@ -82,10 +92,23 @@ class Wifi:
         """
         LOGGER.info("start AP with configuration %s", ap_config)
 
+        dev = self._config.wifi_ap_interface
+        ip(f"link set {dev} down")
+        ip(f"addr flush dev {dev}")
+        ip(f"link set {dev} up")
+        ip(f"addr add 192.168.13.1/24 dev {dev}")
+
+        LOGGER.debug("NAT traffic")
+        iptables(f"-F")
+        iptables(f"-t nat -F")
+        iptables(f"-t nat -A POSTROUTING -o eth0 -j MASQUERADE")
+        iptables(f"-A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT")
+        iptables(f"-A FORWARD -i {dev} -o eth0 -j ACCEPT")
+
         # build hostapd configuration file
         config = {
-            "ssid": ap_config.ssid,
             "interface": self._config.wifi_ap_interface,
+            "ssid": ap_config.ssid,
             "driver": "nl80211",
             "hw_mode": "g",
             "channel": ap_config.channel,
@@ -108,7 +131,7 @@ class Wifi:
                 config["wpa"] = 2
             if ap_config.security_type == WifiSecurityType.WPA3:
                 config["wpa"] = 3
-            config["wpa_key_mgmt"] = "WPA - PSK"
+            config["wpa_key_mgmt"] = "WPA-PSK"
             config["wpa_pairwise"] = "TKIP"
             config["rsn_pairwise"] = "CCMP"
             config["wpa_passphrase"] = ap_config.passphrase
@@ -118,18 +141,85 @@ class Wifi:
 
         LOGGER.debug("generated hostapd config: %s", config)
 
-        # write hostapd configuration file
-        with open("/etc/hostapd/hostapd.conf", "w") as f:
-            for key, value in config.items():
-                print(key, "=", value, file=f)
-
-        # start related service
-        systemctl("start hostapd.service")
+        self._dnsmasq = Dnsmasq()
+        self._dnsmasq.start()
+        self._hostapd = Hostapd(config)
+        self._hostapd.start()
 
     def stop_ap(self):
         """
         stops the host AP interface with the specified configuration
         """
-        LOGGER.info("stopping AP")
-        # stop related service
-        systemctl("stop hostapd.service")
+        LOGGER.debug("stop hostapd")
+        if self._hostapd:
+            self._hostapd.stop()
+            self._hostapd = None
+        LOGGER.debug("stop dnsmasq")
+        if self._dnsmasq:
+            self._dnsmasq.stop()
+            self._dnsmasq = None
+        LOGGER.debug("all stopped")
+
+
+class Hostapd:
+    def __init__(self, config: dict):
+        self._config = config
+        self._process = None
+
+    def start(self):
+        LOGGER.debug("start hostapd")
+        Thread(target=self._thread_entry, daemon=True).start()
+
+    def stop(self):
+        LOGGER.debug("stop hostapd")
+        if self._process:
+            self._process.kill()
+
+    def _thread_entry(self):
+        config_content = ""
+        for key, value in self._config.items():
+            config_content += f"{key}={value}\n"
+
+        LOGGER.debug("run hostapd with configuration: %s", config_content)
+
+        with tempfile.NamedTemporaryFile("w") as hostapd_config:
+            print(config_content, file=hostapd_config, flush=True)
+
+            LOGGER.info("start hostapd")
+            self._process = subprocess.Popen(
+                    ["sudo", "hostapd", "-dd", hostapd_config.name],
+                    stderr=subprocess.STDOUT,
+                    stdout=subprocess.PIPE,
+                    encoding="utf-8")
+            for line in self._process.stdout:
+                LOGGER.debug("hostapd: %s", line.strip())
+
+            LOGGER.debug("process terminated")
+            self._process = None
+
+
+class Dnsmasq:
+    def __init__(self):
+        self._process = None
+
+    def start(self):
+        LOGGER.debug("start dnsmasq")
+        Thread(target=self._thread_entry, daemon=True).start()
+
+    def stop(self):
+        LOGGER.debug("stop dnsmasq")
+        if self._process:
+            self._process.kill()
+
+    def _thread_entry(self):
+        self._process = subprocess.Popen(
+            ["sudo", "dnsmasq", "-d"],
+            stderr=subprocess.STDOUT,
+            stdout=subprocess.PIPE,
+            encoding="utf-8")
+
+        for line in self._process.stdout:
+            LOGGER.debug(line.strip())
+
+        LOGGER.debug("process terminated")
+        self._process = None

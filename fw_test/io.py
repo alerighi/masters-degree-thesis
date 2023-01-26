@@ -1,15 +1,25 @@
 from enum import Enum
 from time import sleep
 from logging import getLogger
+from threading import Thread
 
 from RPi import GPIO
 from serial import Serial
+from serial.threaded import LineReader, ReaderThread
 
 from fw_test.config import Config
 from fw_test.firmware import Firmware
 
 LOGGER = getLogger(__name__)
 CONSOLE_BAUDRATE = 115200
+
+
+class SerialReader(LineReader):
+    TERMINATOR = b"\n"
+    ENCODING = "latin-1"
+
+    def handle_line(self, line):
+        LOGGER.debug("RE: %s", line)
 
 
 class IOValue(Enum):
@@ -68,10 +78,12 @@ class IO:
 
     def __init__(self, config: Config):
         self._config = config
-        self._serial = Serial(port=config.serial_port, baudrate=CONSOLE_BAUDRATE)
-        self._serial.open()
+        self._serial = Serial(port=config.serial_port, baudrate=CONSOLE_BAUDRATE, timeout=10)
+        self._reader = Thread(target=self.serial_read, daemon=True)
+        self._reader = ReaderThread(self._serial, SerialReader)
+        self._reader.start()
 
-        GPIO.setmode(GPIO.BOARD)
+        GPIO.setmode(GPIO.BCM)
 
         def setup(pin: IOPin, mode: int):
             LOGGER.debug("setup pin %s (%s) as %s", pin.name, pin.value, "INPUT" if mode == GPIO.IN else "OUTPUT")
@@ -88,6 +100,7 @@ class IO:
         # setup all outputs
         setup(IOPin.RESET, GPIO.OUT)
         setup(IOPin.BOOT, GPIO.OUT)
+        setup(IOPin.RESTORE, GPIO.OUT)
         setup(IOPin.BUTTON_PLUS, GPIO.OUT)
         setup(IOPin.BUTTON_MINUS, GPIO.OUT)
         setup(IOPin.FIL_PILOTE_P, GPIO.OUT)
@@ -99,13 +112,13 @@ class IO:
         reboots the device by controlling the RESET signal
         """
         LOGGER.info("reset board")
-        self.write(IOPin.RESET, GPIO.LOW)
+        self.write(IOPin.RESET, IOValue.LOW)
 
         sleep(0.1)
 
-        self.write(IOPin.BOOT, GPIO.LOW)
-        self.write(IOPin.RESTORE, GPIO.LOW)
-        self.write(IOPin.RESET, GPIO.HIGH)
+        self.write(IOPin.BOOT, IOValue.LOW)
+        self.write(IOPin.RESTORE, IOValue.LOW)
+        self.write(IOPin.RESET, IOValue.HIGH)
 
     def flash_firmware(self, firmware: Firmware):
         """
@@ -119,12 +132,12 @@ class IO:
         """
         LOGGER.info("restore board firmware")
 
-        self.write(IOPin.RESET, GPIO.LOW)
-        self.write(IOPin.RESTORE, GPIO.HIGH)
-        self.write(IOPin.BOOT, GPIO.HIGH)
+        self.write(IOPin.RESET, IOValue.LOW)
+        self.write(IOPin.RESTORE, IOValue.HIGH)
+        self.write(IOPin.BOOT, IOValue.HIGH)
 
         sleep(0.1)
-        self.write(IOPin.RESET, GPIO.HIGH)
+        self.write(IOPin.RESET, IOValue.HIGH)
 
         sleep(0.1)
         self.reset()
@@ -154,3 +167,15 @@ class IO:
         """
         self._serial.write(data.encode("ascii"))
 
+    def stop(self):
+        LOGGER.debug("stop serial reader")
+        self._reader.stop()
+
+    def serial_read(self):
+        try:
+            while True:
+                line = self._serial.readline()
+                LOGGER.debug("RE: %s", line.decode("latin-1").strip())
+        except:
+            LOGGER.debug("serial reader stop")
+            return
