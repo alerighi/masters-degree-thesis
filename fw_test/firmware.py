@@ -2,7 +2,7 @@ import re
 
 from logging import getLogger
 from dataclasses import dataclass
-from typing import Self
+from typing import Self, Optional
 
 LOGGER = getLogger(__name__)
 FW_VERSION_RE = re.compile(br"\$\$FIRMWARE_VERSION=([0-9]+)\.([0-9]+)-([a-z0-9]+)\#")
@@ -12,10 +12,17 @@ FW_VERSION_RE = re.compile(br"\$\$FIRMWARE_VERSION=([0-9]+)\.([0-9]+)-([a-z0-9]+
 class FirmwareVersion:
     major: int
     minor: int
-    commit: str
+    commit: Optional[str]
 
     def __str__(self):
         return f"v{self.major}.{self.minor}-{self.commit}"
+
+    @classmethod
+    def from_bytes(cls, version: bytes) -> Self:
+        if len(version) != 2:
+            raise ValueError("firmware version must be a 2 byte array")
+
+        return cls(major=version[0], minor=version[1], commit=None)
 
 
 @dataclass(frozen=True)
