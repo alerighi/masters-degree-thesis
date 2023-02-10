@@ -4,11 +4,11 @@ from logging import getLogger
 import uuid
 
 from fw_test.context import Context
-from fw_test.io import IOPin, IOValue
+from fw_test.io import LedColor
 from fw_test.wifi import ApConfiguration, WifiSecurityType
 from fw_test.cloud import Message, Action, Response, PacketType
 
-from .utils import assert_status_led_color, assert_load_state, LedColor, assert_provision_ok, assert_firmware_version, hard_reset_procedure
+from fw_test.firmware import FirmwareVersion
 
 LOGGER = getLogger(__name__)
 
@@ -20,10 +20,10 @@ def test_pairing(ctx: Context):
     hard_reset_procedure(ctx)
 
     LOGGER.info("check that the LED is fixed RED")
-    assert_status_led_color(ctx, LedColor.RED)
+    assert ctx.io.status_led_color() == LedColor.RED
 
     LOGGER.info("check that the relay is OFF")
-    assert_load_state(ctx, False)
+    assert not ctx.io.is_load_active()
 
     LOGGER.info("connect to the device Wi-Fi AP")
     ctx.wifi.client_connect()
@@ -31,17 +31,17 @@ def test_pairing(ctx: Context):
     sleep(1)
 
     ap_config = ApConfiguration(
-        #ssid="IOTINGA",
         ssid=TEST_SSID,
-        #passphrase="LavistadallufficioEstupenda!",
         passphrase=TEST_PASSPHRASE,
         security_type=WifiSecurityType.WPA2,
         channel=6,
     )
 
     LOGGER.info("send provision request")
-    env_id = str(uuid.uuid4())
-    assert_provision_ok(ap_config, env_id)
+    env_id = uuid.uuid4()
+    response = ctx.api.provision(ap_config, env_id)
+    assert response.status_code == 200
+    assert response.json()["status"] == "success"
 
     # LOGGER.info("activate the device software AP")
     ctx.wifi.start_ap(ap_config)
@@ -73,5 +73,5 @@ def test_pairing(ctx: Context):
     assert msg.state["systemId"] == env_id
 
     # firmware version should be the one under test
-    assert_firmware_version(msg, ctx.firmware.version)
+    assert FirmwareVersion.from_bytes(msg.state["firmwareVersion"]) == ctx.firmware.version
 

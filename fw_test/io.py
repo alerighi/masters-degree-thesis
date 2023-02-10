@@ -26,6 +26,20 @@ class IOValue(Enum):
     LOW = GPIO.LOW
     HIGH = GPIO.HIGH
 
+    def __int__(self):
+        return 1 if self.value == IOValue.HIGH else 0
+
+
+class LedColor(Enum):
+    OFF = (0, 0, 0)
+    RED = (1, 0, 0)
+    GREEN = (0, 1, 0)
+    BLUE = (0, 0, 1)
+    YELLOW = (1, 1, 0)
+    CYAN = (0, 1, 1)
+    MAGENTA = (1, 0, 1)
+    WHITE = (1, 1, 1)
+
 
 # Pin assignment
 #                                         Pin 1 Pin2
@@ -185,3 +199,21 @@ class IO:
         except:
             LOGGER.debug("serial reader stop")
             return
+
+    def status_led_color(self) -> LedColor:
+        """
+        get the color of the RGB status led
+        """
+
+        r = int(self.read(IOPin.LED_R))
+        g = int(self.read(IOPin.LED_G))
+        b = int(self.read(IOPin.LED_B))
+
+        return LedColor((r, g, b))
+
+    def is_load_active(self) -> bool:
+        """
+        return ture if the relay is on
+        """
+        return self.read(IOPin.RELAY) == IOValue.HIGH
+
