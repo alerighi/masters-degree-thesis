@@ -1,8 +1,13 @@
 from time import sleep
+from logging import getLogger
 
 import pytest
 
 from fw_test.context import Context
+from fw_test.io import LedColor
+
+
+LOGGER = getLogger(__name__)
 
 
 # adds custom options to the pytest argument parser
@@ -36,6 +41,12 @@ def before_test_cleanup(ctx: Context):
 
     # wait for the system to boot up
     sleep(2)
+
+    if ctx.io.status_led_color() != LedColor.RED:
+        LOGGER.info("sending device hard reset")
+        ctx.io.hard_reset()
+
+        assert ctx.io.status_led_color() == LedColor.RED
 
     yield
 

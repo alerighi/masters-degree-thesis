@@ -24,7 +24,7 @@ class LocalApi:
     def __init__(self, config: Config):
         self._config = config
 
-    def provision(self, ap_configuration: ApConfiguration, env_id: UUID) -> requests.Response:
+    def provision(self, ap_configuration: ApConfiguration, env_id: UUID) -> dict:
         """
         send a provisioning request to the RE device
         """
@@ -33,22 +33,22 @@ class LocalApi:
             "security": WIFI_SECURITY_MAP_TO_RE[ap_configuration.security_type],
             "passphrase": ap_configuration.passphrase,
             "envId": str(env_id),
-        }, timeout=REQUEST_TIMEOUT)
+        }, timeout=REQUEST_TIMEOUT).json()
 
-    def wifi_scan(self):
+    def wifi_scan(self) -> list:
         """
         return the list of network scanned by the RE device
         """
-        return requests.get(BASE_URL + "/irsap/wifi/scan", timeout=REQUEST_TIMEOUT)
+        return requests.get(BASE_URL + "/irsap/wifi/scan", timeout=REQUEST_TIMEOUT).json()
 
-    def status(self):
+    def status(self) -> dict:
         """
         gets the status of the RE device
         """
 
-        return requests.get(BASE_URL + "/irsap/state", timeout=REQUEST_TIMEOUT)
+        return requests.get(BASE_URL + "/irsap/state", timeout=REQUEST_TIMEOUT).json()
 
-    def firmware_update(self, firmware: Firmware):
+    def firmware_update(self, firmware: Firmware) -> dict:
         """
         upgrade the firmware of the RE device
         """

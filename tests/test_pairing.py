@@ -4,10 +4,8 @@ from logging import getLogger
 import uuid
 
 from fw_test.context import Context
-from fw_test.io import LedColor
 from fw_test.wifi import ApConfiguration, WifiSecurityType
 from fw_test.cloud import Message, Action, Response, PacketType
-
 from fw_test.firmware import FirmwareVersion
 
 LOGGER = getLogger(__name__)
@@ -17,40 +15,42 @@ TEST_PASSPHRASE = "test-network-passphrase"
 
 
 def test_pairing(ctx: Context):
-    hard_reset_procedure(ctx)
-
-    LOGGER.info("check that the LED is fixed RED")
-    assert ctx.io.status_led_color() == LedColor.RED
-
-    LOGGER.info("check that the relay is OFF")
-    assert not ctx.io.is_load_active()
-
-    LOGGER.info("connect to the device Wi-Fi AP")
+    # avvio la connessione del Raspberry all'AP
     ctx.wifi.client_connect()
 
     sleep(1)
 
+    # chiedo lo stato al dispositivo
+    response = ctx.api.status()
+
+    # mi assicuro che la versione firmware del dispositivo sia quella da testare
+    assert FirmwareVersion.from_str(response["system"]["fwVer"]) == ctx.firmware.version
+
+    # effettuo la scansione Wi-Fi
+    response = ctx.api.wifi_scan()
+
+    # mi assicuro che la scan restituisca almeno una rete
+    assert len(response) > 0
+
+    # invio la richiesta provision
     ap_config = ApConfiguration(
         ssid=TEST_SSID,
         passphrase=TEST_PASSPHRASE,
         security_type=WifiSecurityType.WPA2,
         channel=6,
     )
-
-    LOGGER.info("send provision request")
     env_id = uuid.uuid4()
     response = ctx.api.provision(ap_config, env_id)
-    assert response.status_code == 200
-    assert response.json()["status"] == "success"
+    assert response["status"] == "success"
 
-    # LOGGER.info("activate the device software AP")
+    # communto la raspberry in AP mode
     ctx.wifi.start_ap(ap_config)
 
-    LOGGER.info("wait for the connection of the device to the cloud")
+    # attendo il primo messaggio su cloud
     msg = ctx.cloud.receive(timeout=60)
     assert msg.action == Action.GET
 
-    # send a GET rejected to the device (we don't have current state)
+    # invio una GET rejected al dispositivo device
     ctx.cloud.publish(Message(
         action=Action.GET,
         response=Response.REJECTED,
@@ -62,16 +62,15 @@ def test_pairing(ctx: Context):
         }
     ))
 
-    # the device should respond with its state with a version of 0
-    msg = ctx.cloud.receive()
+    # mi aspetto ora un reported update
+    msg = ctx.cloud.receive(timeout=5)
     assert msg.method == Action.REPORTED_UPDATE
 
-    # initial version should always be 0
+    # la versione iniziale deve essere zero
     assert msg.state["version"] == 0
 
-    # env id is the one provided during pairing
-    assert msg.state["systemId"] == env_id
+    # il system id deve essere uguale all'env id
+    assert msg.state["systemId"] == env_id.bytes()
 
-    # firmware version should be the one under test
+    # la versione firmware deve corrispondere a quella in test
     assert FirmwareVersion.from_bytes(msg.state["firmwareVersion"]) == ctx.firmware.version
-

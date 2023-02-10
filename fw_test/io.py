@@ -205,9 +205,9 @@ class IO:
         get the color of the RGB status led
         """
 
-        r = int(self.read(IOPin.LED_R))
-        g = int(self.read(IOPin.LED_G))
-        b = int(self.read(IOPin.LED_B))
+        r = int(self.read(IOPin.LED_R).value)
+        g = int(self.read(IOPin.LED_G).value)
+        b = int(self.read(IOPin.LED_B).value)
 
         return LedColor((r, g, b))
 
@@ -217,3 +217,36 @@ class IO:
         """
         return self.read(IOPin.RELAY) == IOValue.HIGH
 
+
+    def hard_reset(self):
+        self.write(IOPin.BUTTON_PLUS, IOValue.LOW)
+        self.write(IOPin.BUTTON_MINUS, IOValue.LOW)
+
+        sleep(7)
+
+        self.write(IOPin.BUTTON_PLUS, IOValue.HIGH)
+        self.write(IOPin.BUTTON_MINUS, IOValue.HIGH)
+
+        sleep(0.5)
+
+        self.write(IOPin.BUTTON_PLUS, IOValue.LOW)
+
+        sleep(0.5)
+
+        self.write(IOPin.BUTTON_PLUS, IOValue.HIGH)
+
+        sleep(2)
+
+    def press_plus(self, press_time=0.2):
+        self.write(IOPin.BUTTON_PLUS, IOValue.LOW)
+
+        sleep(press_time)
+
+        self.write(IOPin.BUTTON_PLUS, IOValue.HIGH)
+
+    def press_minus(self, press_time=0.2):
+        self.write(IOPin.BUTTON_MINUS, IOValue.LOW)
+
+        sleep(press_time)
+
+        self.write(IOPin.BUTTON_MINUS, IOValue.HIGH)
