@@ -21,7 +21,7 @@ wifi_ap_interface =  "wlan0"
 wifi_client_interface = "wlan0"
 
 # Wi-Fi SSID of the RE under test
-wifi_ssid = "IRSAP_RD_ABCDEF"
+wifi_ssid = "IRSAP_RD_A7VDVXN"
 
 # device debug serial port
 serial_port = "/dev/ttyUSB0"

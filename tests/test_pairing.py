@@ -8,7 +8,7 @@ from fw_test.io import IOPin, IOValue
 from fw_test.wifi import ApConfiguration, WifiSecurityType
 from fw_test.cloud import Message, Action, Response, PacketType
 
-from .utils import assert_status_led_color, assert_load_state, LedColor, assert_provision_ok, assert_firmware_version
+from .utils import assert_status_led_color, assert_load_state, LedColor, assert_provision_ok, assert_firmware_version, hard_reset_procedure
 
 LOGGER = getLogger(__name__)
 
@@ -17,6 +17,8 @@ TEST_PASSPHRASE = "test-network-passphrase"
 
 
 def test_pairing(ctx: Context):
+    hard_reset_procedure(ctx)
+
     LOGGER.info("check that the LED is fixed RED")
     assert_status_led_color(ctx, LedColor.RED)
 

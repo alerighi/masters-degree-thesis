@@ -1,4 +1,5 @@
 from enum import Enum
+from time import sleep
 
 import requests
 
@@ -64,3 +65,30 @@ def assert_firmware_version(msg: Message, version: FirmwareVersion):
 
     assert version.major == major
     assert version.minor == minor
+
+
+def hard_reset_procedure(ctx: Context):
+    # press + and - for at least 8 seconds
+    ctx.io.write(IOPin.BUTTON_MINUS, IOValue.LOW)
+    ctx.io.write(IOPin.BUTTON_PLUS, IOValue.LOW)
+
+    sleep(8)
+
+    ctx.io.write(IOPin.BUTTON_MINUS, IOValue.HIGH)
+    ctx.io.write(IOPin.BUTTON_PLUS, IOValue.HIGH)
+
+    # now LED should be YELLOW
+    assert_status_led_color(ctx, LedColor.YELLOW)
+
+    # press one button
+    ctx.io.write(IOPin.BUTTON_MINUS, IOValue.LOW)
+
+    sleep(0.2)
+
+    ctx.io.write(IOPin.BUTTON_MINUS, IOValue.HIGH)
+
+    # wait for 5 seconds for the device to reboot 
+    sleep(5)
+
+    assert_status_led_color(ctx, LedColor.RED)
+

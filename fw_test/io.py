@@ -84,7 +84,7 @@ class IO:
         self._reader.start()
 
         GPIO.setmode(GPIO.BCM)
-
+        
         def setup(pin: IOPin, mode: int):
             LOGGER.debug("setup pin %s (%s) as %s", pin.name, pin.value, "INPUT" if mode == GPIO.IN else "OUTPUT")
             GPIO.setup(pin.value, mode)
@@ -106,6 +106,9 @@ class IO:
         setup(IOPin.FIL_PILOTE_P, GPIO.OUT)
         setup(IOPin.FIL_PILOTE_N, GPIO.OUT)
         setup(IOPin.CURRENT_FEEDBACK, GPIO.OUT)
+
+        self.write(IOPin.BUTTON_MINUS, IOValue.HIGH)
+        self.write(IOPin.BUTTON_PLUS, IOValue.HIGH)
 
     def reset(self):
         """
@@ -152,7 +155,7 @@ class IO:
         """
         sets the value for a pin
         """
-        LOGGER.debug("set pin %s %s", pin.name, value.name)
+        LOGGER.debug("set pin %s(%s) %s(%s)", pin.name, pin.value, value.name, value.value)
         GPIO.output(pin.value, value.value)
 
     def serial_readline(self) -> str:
@@ -170,6 +173,9 @@ class IO:
     def stop(self):
         LOGGER.debug("stop serial reader")
         self._reader.stop()
+
+        GPIO.cleanup() 
+
 
     def serial_read(self):
         try:
