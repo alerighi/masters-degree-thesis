@@ -125,6 +125,9 @@ STRUCTURE = {
     PacketType.STATE_REPORTED_V2.value: PACKET_STATE_REPORTED_V2,
 }
 
+SYSTEM_STATUS_WORKING = 0x01
+SYSTEM_STATUS_HEATING = 0x02
+SYSTEM_STATUS_LOAD_ACTIVE = 0x08
 
 def to_binary(state: dict) -> bytes:
     if isinstance(state["type"], PacketType):
