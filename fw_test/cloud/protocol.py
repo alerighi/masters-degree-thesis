@@ -19,7 +19,7 @@ class Action(Enum):
 
 TOPIC_ACTION = {
     Action.GET: "get",
-    Action.DESIRED_UPDATE: "desired-update",
+    Action.DESIRED_UPDATE: "desired-update/accepted",
     Action.REPORTED_UPDATE: "reported-update",
     Action.DELETE: "delete",
 }

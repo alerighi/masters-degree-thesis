@@ -41,6 +41,9 @@ class LedColor(Enum):
     WHITE = (1, 1, 1)
 
 
+BUTTON_DOWN_VALUE = IOValue.LOW
+BUTTON_UP_VALUE = IOValue.HIGH
+
 # Pin assignment
 #                                         Pin 1 Pin2
 #                                      +3V3 [ ] [ ] +5V
@@ -121,8 +124,8 @@ class IO:
         setup(IOPin.FIL_PILOTE_N, GPIO.OUT)
         setup(IOPin.CURRENT_FEEDBACK, GPIO.OUT)
 
-        self.write(IOPin.BUTTON_MINUS, IOValue.HIGH)
-        self.write(IOPin.BUTTON_PLUS, IOValue.HIGH)
+        self.write(IOPin.BUTTON_MINUS, BUTTON_UP_VALUE)
+        self.write(IOPin.BUTTON_PLUS, BUTTON_UP_VALUE)
 
     def reset(self):
         """
@@ -212,41 +215,42 @@ class IO:
         return LedColor((r, g, b))
 
     def is_load_active(self) -> bool:
-        """
+        """ 
         return ture if the relay is on
         """
+
         return self.read(IOPin.RELAY) == IOValue.HIGH
 
 
     def hard_reset(self):
-        self.write(IOPin.BUTTON_PLUS, IOValue.LOW)
-        self.write(IOPin.BUTTON_MINUS, IOValue.LOW)
+        self.write(IOPin.BUTTON_PLUS, BUTTON_DOWN_VALUE)
+        self.write(IOPin.BUTTON_MINUS, BUTTON_DOWN_VALUE)
 
         sleep(7)
 
-        self.write(IOPin.BUTTON_PLUS, IOValue.HIGH)
-        self.write(IOPin.BUTTON_MINUS, IOValue.HIGH)
+        self.write(IOPin.BUTTON_PLUS, BUTTON_UP_VALUE)
+        self.write(IOPin.BUTTON_MINUS, BUTTON_UP_VALUE)
 
         sleep(0.5)
 
-        self.write(IOPin.BUTTON_PLUS, IOValue.LOW)
+        self.write(IOPin.BUTTON_PLUS, BUTTON_DOWN_VALUE)
 
         sleep(0.5)
 
-        self.write(IOPin.BUTTON_PLUS, IOValue.HIGH)
+        self.write(IOPin.BUTTON_PLUS, BUTTON_UP_VALUE)
 
         sleep(2)
 
     def press_plus(self, press_time=0.2):
-        self.write(IOPin.BUTTON_PLUS, IOValue.LOW)
+        self.write(IOPin.BUTTON_PLUS, BUTTON_DOWN_VALUE)
 
         sleep(press_time)
 
-        self.write(IOPin.BUTTON_PLUS, IOValue.HIGH)
+        self.write(IOPin.BUTTON_PLUS, BUTTON_UP_VALUE)
 
     def press_minus(self, press_time=0.2):
-        self.write(IOPin.BUTTON_MINUS, IOValue.LOW)
+        self.write(IOPin.BUTTON_MINUS, BUTTON_DOWN_VALUE)
 
         sleep(press_time)
 
-        self.write(IOPin.BUTTON_MINUS, IOValue.HIGH)
+        self.write(IOPin.BUTTON_MINUS, BUTTON_UP_VALUE)

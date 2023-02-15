@@ -33,6 +33,8 @@ def ctx(request: pytest.FixtureRequest):
 # restores the board state before each test
 @pytest.fixture(autouse=True)
 def before_test_cleanup(ctx: Context):
+    LOGGER.info("status LED is %s", ctx.io.status_led_color())
+
     # ensure firmware is restored before running test
     ctx.io.restore_firmware()
 
