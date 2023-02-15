@@ -172,8 +172,7 @@ class Hostapd:
 
     def stop(self):
         LOGGER.debug("stop hostapd")
-        if self._process:
-            self._process.kill()
+        subprocess.check_call(["sudo", "killall", "hostapd"])
 
     def _thread_entry(self):
         config_content = ""
@@ -208,8 +207,7 @@ class Dnsmasq:
 
     def stop(self):
         LOGGER.debug("stop dnsmasq")
-        if self._process:
-            self._process.kill()
+        subprocess.check_call(["sudo", "killall", "dnsmasq"])
 
     def _thread_entry(self):
         self._process = subprocess.Popen(
