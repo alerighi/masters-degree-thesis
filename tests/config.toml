@@ -1,5 +1,5 @@
 # MAC address of the device under test
-mac_address = "20:0a:0d:a2:00:01"
+mac_address = "20:0a:0d:a2:00:3d"
 
 # AWS profile to use
 aws_profile = "iotinga"

@@ -14,10 +14,11 @@ TYPE_TO_STRUCT = {
 
 
 def to_struct_fmt(data_type: str) -> str:
-    data_type, length = TYPE_RE.match(data_type).groups()
+    data_type, _, length = TYPE_RE.match(data_type).groups()
     if length:
         # for simplicity only array of bytes (strings) are supported
-        assert data_type == "u8"
+        if data_type != "u8":
+            raise RuntimeError("invalid type", data_type)
 
         return f"{length}s"
 
@@ -33,7 +34,11 @@ def serialize(structure: dict, message: dict) -> bytes:
     args = []
     for key, data_type in structure.items():
         fmt += to_struct_fmt(data_type)
-        args += message[key]
+        value = message[key]
+        is_basic_type = data_type in TYPE_TO_STRUCT
+        if is_basic_type and not isinstance(value, int) or not is_basic_type and not isinstance(value, bytes):
+            raise RuntimeError("invaid type", key)
+        args.append(value)
 
     return struct.pack(fmt, *args)
 

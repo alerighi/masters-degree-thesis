@@ -1,10 +1,10 @@
-from fw_test.cloud import Action
+from fw_test.cloud import PacketType
 
 STATE_MANUAL = {
     "clientToken": 0,
     "timestamp": 0,
     "requestId": 0,
-    "type": Action.DESIRED_UPDATE,
+    "type": PacketType.STATE_DESIRED_V2,
     "systemConfiguration": 0,
     "metricInterval": 20,
     "powerConfig": 100,

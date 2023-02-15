@@ -6,7 +6,7 @@ PACKET_HEADER = {
     "clientToken": "u32",
     "timestamp": "u32",
     "requestId": "u32",
-    "length": "u6",
+    "length": "u16",
     "type": "u8"
 }
 
@@ -69,14 +69,15 @@ PACKET_BODY_RW_V2 = {
     "ledEnable": "u8",
     "ledMode": "u8",
     "ledSchedule": "u8[154]",
-    "ledColors": "u8[10]",
+    "ledColors": "u8[40]",
     "temporaryManualLedSetPoint": "u32",
+    "temporaryManualLedSetPointEnd": "u32",
     "estimatedTemperature": "i16",
     "externalTemperature": "i16",
     "estimatedHumidity": "u8",
     "externalHumidity": "u8",
     "timesyncServer": "u8[32]",
-    "forFutureUsage": "u8[68]",
+    "forFutureUsage_rw": "u8[68]",
 }
 
 PACKET_BODY_R_V2 = {
@@ -87,7 +88,7 @@ PACKET_BODY_R_V2 = {
     "cumulatedConsumptionWattHourSnapshotValue": "u32",
     "cumulatedConsumptionWattHourSnapshotTime": "u32",
     "modelName": "u8[20]",
-    "forFutureUsage": "u8[100]",
+    "forFutureUsage_r": "u8[100]",
 }
 
 PACKET_STATE_DESIRED_V2 = {
@@ -115,12 +116,12 @@ class PacketType(Enum):
 
 
 STRUCTURE = {
-    PacketType.HEADER: PACKET_HEADER,
-    PacketType.CONNECTION: PACKET_CONNECTION,
-    PacketType.STATE_DESIRED_V1: PACKET_STATE_DESIRED_V1,
-    PacketType.STATE_DESIRED_V2: PACKET_STATE_DESIRED_V2,
-    PacketType.STATE_REPORTED_V1: PACKET_STATE_REPORTED_V1,
-    PacketType.STATE_REPORTED_V2: PACKET_STATE_REPORTED_V2,
+    PacketType.HEADER.value: PACKET_HEADER,
+    PacketType.CONNECTION.value: PACKET_CONNECTION,
+    PacketType.STATE_DESIRED_V1.value: PACKET_STATE_DESIRED_V1,
+    PacketType.STATE_DESIRED_V2.value: PACKET_STATE_DESIRED_V2,
+    PacketType.STATE_REPORTED_V1.value: PACKET_STATE_REPORTED_V1,
+    PacketType.STATE_REPORTED_V2.value: PACKET_STATE_REPORTED_V2,
 }
 
 
