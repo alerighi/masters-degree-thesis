@@ -43,7 +43,7 @@ def test_thermoregulation(ctx: Context):
             **STATE_MANUAL,
             "clientToken": msg.state["clientToken"],
             "timestamp": int(time()),
-            "systemId": env_id.bytes(),
+            "envId": env_id.bytes(),
             "requestId": 1,
         }
     ))

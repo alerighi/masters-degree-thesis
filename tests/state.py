@@ -17,7 +17,7 @@ STATE_MANUAL = {
     "hysteresis": 5,
     "temperatureSensorOffset": 0,
     "ledStatus": 0,
-    "systemId": [],
+    "envId": [],
     "temporaryManualEnd": 0,
     "holidayStart": 0,
     "holidayEnd": 0,

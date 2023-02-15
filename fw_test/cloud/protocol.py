@@ -53,7 +53,7 @@ class Protocol:
         self._topic_base = f"re/things/{config.mac_address}/shadow"
 
         # start required subscription
-        self._mqtt.subscribe(f"{self._topic_base}/#", self._on_message)
+        self._mqtt.subscribe(f"{self._topic_base}/+", self._on_message)
         self._callback = callback
 
     def publish(self, message: Message):
@@ -69,7 +69,6 @@ class Protocol:
         state = from_binary(payload)
         message = Message(action, response, state)
 
-        LOGGER.debug("decoded message: %s", message)
         self._callback(message)
 
     def _topic_for(self, message: Message) -> str:

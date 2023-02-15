@@ -42,7 +42,7 @@ def test_encode_state():
     test_state = {
         "clientToken": 0,
         "timestamp": 0,
-        "requestId": 0,
+        "version": 0,
         "type": PacketType.STATE_DESIRED_V2.value,
         "systemConfiguration": 0,
         "metricInterval": 20,
@@ -56,7 +56,7 @@ def test_encode_state():
         "hysteresis": 5,
         "temperatureSensorOffset": 0,
         "ledStatus": 0,
-        "systemId": b"\0" * 16,
+        "envId": b"\0" * 16,
         "temporaryManualEnd": 0,
         "holidayStart": 0,
         "holidayEnd": 0,

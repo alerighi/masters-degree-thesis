@@ -1,9 +1,11 @@
 from queue import Queue
 from logging import getLogger
+from time import time
 
 from fw_test.config import Config
 from fw_test.cloud.mqtt import Mqtt
-from fw_test.cloud.protocol import Protocol, Message
+from fw_test.cloud.protocol import Protocol, Message, Action
+from fw_test.cloud.state import PacketType
 from fw_test.cloud.jobs import Job, JobState, AwsJobs
 
 LOGGER = getLogger(__name__)
@@ -35,12 +37,18 @@ class Cloud:
         """
         self._protocol.publish(message)
 
-    def receive(self, timeout=10) -> Message:
+    def receive(self, timeout=10, ignore_connection=True) -> Message:
         """
         waits for a message incoming from the cloud, decodes
         and validates it and returns it.
         """
-        return self._queue.get(block=True, timeout=timeout)
+        packet = self._queue.get(block=True, timeout=timeout)
+        start = time()
+        if ignore_connection and packet.action == Action.REPORTED_UPDATE and packet.state["type"] == PacketType.CONNECTION.value:
+            LOGGER.debug("received connection packet, ignore...")
+            return self.receive(timeout=timeout - (time() - start), ignore_connection=True)
+
+        return packet
 
     def job_create(self, job_document: dict) -> Job:
         """

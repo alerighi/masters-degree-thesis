@@ -40,7 +40,7 @@ def test_standby(ctx: Context):
             **STATE_MANUAL,
             "clientToken": 0,
             "timestamp": int(time()),
-            "systemId": env_id.bytes(),
+            "envId": env_id.bytes(),
             "requestId": 1,
             "manualSetPoint": 200,
         }

@@ -5,12 +5,13 @@ from fw_test.cloud.serializer import serialize, deserialize, sizeof
 PACKET_HEADER = {
     "clientToken": "u32",
     "timestamp": "u32",
-    "requestId": "u32",
+    "version": "u32",
     "length": "u16",
     "type": "u8"
 }
 
 PACKET_CONNECTION = {
+    **PACKET_HEADER,
     "connected": "u8"
 }
 
@@ -27,7 +28,7 @@ PACKET_BODY_RW_V1 = {
     "hysteresis": "u8",
     "temperatureSensorOffset": "i8",
     "ledStatus": "u32",
-    "systemId": "u8[16]",
+    "envId": "u8[16]",
     "ipAddress": "u8[4]",
     "temporaryManualEnd": "u32",
     "holidayStart": "u32",
@@ -126,6 +127,9 @@ STRUCTURE = {
 
 
 def to_binary(state: dict) -> bytes:
+    if isinstance(state["type"], PacketType):
+        state["type"] = state["type"].value
+
     structure = STRUCTURE[state["type"]]
 
     # compute length so that it can be not specified when encoding
