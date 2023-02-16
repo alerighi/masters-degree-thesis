@@ -27,7 +27,6 @@ def ctx(request: pytest.FixtureRequest):
     yield context
 
     context.cloud.stop()
-    context.wifi.stop_ap()
     context.io.stop()
 
 # restores the board state before each test
@@ -52,5 +51,5 @@ def before_test_cleanup(ctx: Context):
 
     yield
 
-    # do any cleanup operation may be needed
+    ctx.wifi.stop_ap()
 
