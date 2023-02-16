@@ -25,3 +25,8 @@ wifi_ssid = "IRSAP_RD_A7VDVXN"
 
 # device debug serial port
 serial_port = "/dev/ttyUSB0"
+
+# version of a previous firmware file
+prev_firmware_path = "prev.bin"
+
+ota_bucket = "iotinga-now2-iot"

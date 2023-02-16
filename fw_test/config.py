@@ -15,6 +15,8 @@ class Config:
     wifi_client_interface: str
     wifi_ssid: str
     serial_port: str
+    prev_firmware_path: str
+    ota_bucket: str
 
     @classmethod
     def load_file(cls, path: str) -> Self:

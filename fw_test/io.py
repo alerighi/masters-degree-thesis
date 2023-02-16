@@ -154,7 +154,6 @@ class IO:
 
         self.write(IOPin.RESET, IOValue.LOW)
         self.write(IOPin.RESTORE, IOValue.HIGH)
-        self.write(IOPin.BOOT, IOValue.HIGH)
 
         sleep(0.1)
         self.write(IOPin.RESET, IOValue.HIGH)

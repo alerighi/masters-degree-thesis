@@ -1,4 +1,5 @@
 import re
+import hashlib
 
 from logging import getLogger
 from dataclasses import dataclass
@@ -39,6 +40,7 @@ class Firmware:
     """
     version: FirmwareVersion
     binary: bytes
+    hash: str
 
     @classmethod
     def load_file(cls, path: str) -> Self:
@@ -52,5 +54,8 @@ class Firmware:
 
         major, minor, commit = FW_VERSION_RE.search(binary).groups()
 
-        return cls(binary=binary, version=FirmwareVersion(int(major), int(minor), commit.decode('ascii')))
-
+        return cls(
+            binary=binary, 
+            hash=hashlib.sha256(binary).hexdigest(),
+            version=FirmwareVersion(int(major), int(minor), commit.decode('ascii'))
+        )

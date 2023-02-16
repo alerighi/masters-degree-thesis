@@ -14,6 +14,7 @@ class Context:
     def __init__(self, config_path: str, firmware_path: str):
         self.config = Config.load_file(config_path)
         self.firmware = Firmware.load_file(firmware_path)
+        self.prev_firmware = Firmware.load_file(self.config.prev_firmware_path)
         self.io = IO(self.config)
         self.wifi = Wifi(self.config)
         self.cloud = Cloud(self.config)
