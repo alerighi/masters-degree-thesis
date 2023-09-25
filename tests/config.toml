@@ -1,14 +1,14 @@
 # MAC address of the device under test
-mac_address = "20:0a:0d:a2:00:3d"
+mac_address = "ff:ff:ff:ff:ff:ff"
 
 # AWS profile to use
-aws_profile = "iotinga"
+aws_profile = "<profile>"
 
 # AWS region to use
 aws_region = "eu-west-1"
 
 # AWS IoT core endpoint
-aws_iot_endpoint = "a1g70oszu4t891-ats.iot.eu-west-1.amazonaws.com"
+aws_iot_endpoint = "<endpoint>"
 
 # AWS IoT core client id
 # Two instances cannot share the same client id at the same time!
@@ -21,7 +21,7 @@ wifi_ap_interface =  "wlan0"
 wifi_client_interface = "wlan0"
 
 # Wi-Fi SSID of the RE under test
-wifi_ssid = "IRSAP_RD_A7VDVXN"
+wifi_ssid = "<ssid>"
 
 # device debug serial port
 serial_port = "/dev/ttyUSB0"
@@ -29,4 +29,4 @@ serial_port = "/dev/ttyUSB0"
 # version of a previous firmware file
 prev_firmware_path = "prev.bin"
 
-ota_bucket = "iotinga-now2-iot"
+ota_bucket = "<bucket>"
